@@ -4,6 +4,8 @@ import asyncio
 import datetime
 
 import discord
+import config
+from my_io import myIO
 
 from mqtt_device import Device
 
@@ -14,6 +16,14 @@ bot = discord.Client(intents = intents)
 
 deviceList = []
 token = ""
+my_guild = None
+
+async def __send_message(message, channel):
+    await channel.send(message)
+
+async def send_message(message, channel = "general"):
+    chan = discord.utils.get(my_guild.text_channels, name=channel)
+    await __send_message(message, chan)
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -55,10 +65,13 @@ async def on_raw_reaction_add(payload):
 
 @bot.event
 async def on_ready():
+    global my_guild
+
     print(f'{bot.user} has connected to Discord!')
 
     for guild in bot.guilds:
         print(f"Guild_id {guild.id}")
+        my_guild = guild
 
         overwrites_h = {
             guild.default_role: discord.PermissionOverwrite(read_messages=False),
@@ -100,9 +113,24 @@ async def on_ready():
         except Exception as e:
             print(e)
 
+@bot.event
+async def setup_hook():
+    my_io = myIO(config.fifo_path, message_parser)
+    bot.loop.create_task(io_task(my_io))
+
+async def io_task(my_io):
+    await my_io.receive()
+
 def init(t):
     global token
     token = t
+
+async def message_parser(data):
+    print("RCV")
+    fields = data.strip().split('#')
+    for field in fields:
+        print(field)
+    await send_message(data)
 
 def start():
     bot.run(token)
