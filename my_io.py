@@ -20,8 +20,8 @@ class myIO:
         self.my_io = io_path
 
     async def read_loop(self):
+        io = os.open(self.my_io, os.O_RDONLY | os.O_NONBLOCK)
         while True:
-            io = os.open(self.my_io, os.O_RDONLY | os.O_NONBLOCK)
             data = os.read(io,1024)
             if data:
                 await self.cb_func(data.decode('utf-8'))
