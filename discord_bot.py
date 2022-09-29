@@ -18,12 +18,17 @@ deviceList = []
 token = ""
 my_guild = None
 
-async def __send_message(message, channel):
-    await channel.send(message)
+async def send_message(data, channel = "general", category = None, is_file = False):
+    if category:
+        cat  = discord.utils.get(my_guild.categories, name = category)
+        chan = discord.utils.get(cat.text_channels, name = channel)
+    else:
+        chan = discord.utils.get(my_guild.text_channels, name=channel)
 
-async def send_message(message, channel = "general"):
-    chan = discord.utils.get(my_guild.text_channels, name=channel)
-    await __send_message(message, chan)
+    if is_file:
+        await chan.send(file=discord.File(data))
+    else:
+        await chan.send(data)
 
 @bot.event
 async def on_raw_reaction_add(payload):
@@ -92,8 +97,9 @@ async def on_ready():
             if not discord.utils.get(cat_h.text_channels, name='devices'):
                 await guild.create_text_channel('Devices', category = cat_h)
 
-            chan = discord.utils.get(cat_h.text_channels, name='devices')
-            await chan.purge(limit=10000)
+            if config.device_handler:
+                chan = discord.utils.get(cat_h.text_channels, name='devices')
+                await chan.purge(limit=10000)
 
             for dev in deviceList:
                 dev_msg = await chan.send(dev.get_name())
@@ -130,7 +136,15 @@ async def message_parser(data):
     fields = data.strip().split('#')
     for field in fields:
         print(field)
-    await send_message(data)
+
+    if fields[0] == "Dilbert":
+        await send_message(fields[1], "dilbert", "Comics", True)
+    elif fields[0] == "Calvin":
+        await send_message(fields[1], "calvin", "Comics", True)
+    elif fields[0] == "Garfield":
+        await send_message(fields[1], "garfield", "Comics", True)
+    else:
+        await send_message(data)
 
 def start():
     bot.run(token)
