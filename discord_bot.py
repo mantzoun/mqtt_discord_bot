@@ -6,6 +6,7 @@ import datetime
 import discord
 import config
 from my_io import myIO
+import my_utils
 
 from mqtt_device import Device
 
@@ -79,9 +80,8 @@ async def on_ready():
         my_guild = guild
 
         overwrites_h = {
-            guild.default_role: discord.PermissionOverwrite(read_messages=False),
-            discord.utils.get(guild.roles, name="Household"): discord.PermissionOverwrite(read_messages=True),
-            discord.utils.get(guild.roles, name="Household"): discord.PermissionOverwrite(send_messages=False)
+            guild.default_role: discord.PermissionOverwrite(read_messages=False, connect=False),
+            discord.utils.get(guild.roles, name="Household"): discord.PermissionOverwrite(read_messages=True, send_messages=False, connect=True)
         }
 
         try:
@@ -100,6 +100,7 @@ async def on_ready():
             if config.device_handler:
                 chan = discord.utils.get(cat_h.text_channels, name='devices')
                 await chan.purge(limit=10000)
+#                await chan.send("====================== Bot Reconnected ======================")
 
             for dev in deviceList:
                 dev_msg = await chan.send(dev.get_name())
@@ -116,6 +117,13 @@ async def on_ready():
             if not discord.utils.get(cat_c.text_channels, name='garfield'):
                 await guild.create_text_channel('Garfield', category = cat_c)
 
+            if not discord.utils.get(my_guild.text_channels, name="syslog"):
+                await guild.create_text_channel('syslog',
+                        overwrites = {guild.default_role: discord.PermissionOverwrite(read_messages=False)})
+            chan = discord.utils.get(my_guild.text_channels, name='syslog')
+            h_name = my_utils.my_hostname()
+            res, ip = my_utils.my_public_ip()
+            await chan.send(f"{h_name}: Connected from {ip}")
         except Exception as e:
             print(e)
 
