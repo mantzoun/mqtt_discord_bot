@@ -117,6 +117,12 @@ async def on_ready():
             if not discord.utils.get(cat_c.text_channels, name='garfield'):
                 await guild.create_text_channel('Garfield', category = cat_c)
 
+            if not discord.utils.get(cat_c.text_channels, name='xkcd'):
+                await guild.create_text_channel('xkcd', category = cat_c)
+
+            if not discord.utils.get(cat_c.text_channels, name='what-if'):
+                await guild.create_text_channel('what-if', category = cat_c)
+
             if not discord.utils.get(my_guild.text_channels, name="syslog"):
                 await guild.create_text_channel('syslog',
                         overwrites = {guild.default_role: discord.PermissionOverwrite(read_messages=False)})
@@ -151,6 +157,10 @@ async def message_parser(data):
         await send_message(fields[1], "calvin", "Comics", True)
     elif fields[0] == "Garfield":
         await send_message(fields[1], "garfield", "Comics", True)
+    elif fields[0] == "xkcd":
+        await send_message(fields[1], "xkcd", "Comics", False)
+    elif fields[0] == "what-if":
+        await send_message(fields[1], "what-if", "Comics", False)
     else:
         await send_message(data)
 
